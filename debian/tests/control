@@ -1,0 +1,2 @@
+Tests: build
+Depends: libncurses5-dev, build-essential, pkg-config

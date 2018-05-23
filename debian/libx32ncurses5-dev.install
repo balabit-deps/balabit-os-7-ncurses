@@ -1,0 +1,9 @@
+usr/libx32/libncurses.so
+obj-x32/lib/libform.so usr/libx32
+obj-x32/lib/libmenu.so usr/libx32
+obj-x32/lib/libpanel.so usr/libx32
+obj-x32/lib/libncurses.a usr/libx32
+obj-x32/lib/libncurses++.a usr/libx32
+obj-x32/lib/libform.a usr/libx32
+obj-x32/lib/libmenu.a usr/libx32
+obj-x32/lib/libpanel.a usr/libx32

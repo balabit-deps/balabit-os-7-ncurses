@@ -1,0 +1,2 @@
+obj-x32/lib/libtinfo.so.* usr/libx32
+obj-x32/lib/libtic.so.* usr/libx32

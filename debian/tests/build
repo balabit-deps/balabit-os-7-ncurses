@@ -1,0 +1,93 @@
+#!/bin/sh
+# autopkgtest check: Build and run a program against ncurses, to verify that 
+# the headers and pkg-config file are installed correctly
+# (C) 2012 Canonical Ltd.
+# Author: Vibhav Pant <vibhavp@ubuntu.com>
+
+set -e
+
+WORKDIR=$(mktemp -d)
+trap "rm -rf $WORKDIR" 0 INT QUIT ABRT PIPE TERM
+cd $WORKDIR
+cat <<EOF > curses_test.c
+#include <ncurses.h>
+#include <assert.h>
+
+/* Testing printw and friends here.
+ * Since printw expands to wprintw, it is not being tested.
+ */
+void test_printw_functions(WINDOW * win)
+{
+	int x, y;
+	assert(wprintw(win, "Printing on WINDOW win with wprintw") != ERR);
+	wrefresh(win);
+	getyx(win, y, x);
+	assert(mvwprintw
+	       (win, y + 1, x + 1,
+		"Printing on WINDOW win on coordinates %d, %d with mvwprintw\n",
+		y + 1, x + 1) != ERR);
+	wrefresh(win);
+}
+
+/* Testing wgetch */
+void test_input_functions(WINDOW * win)
+{
+	assert(wgetch(win) == 'a');
+	wrefresh(win);
+}
+
+/* Testing vwprintw */
+void test_vwprintw(WINDOW * win, char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	assert(vwprintw(win, fmt, args) != ERR);
+	va_end(args);
+	wrefresh(win);
+}
+
+/* Testing addch and friends */
+void test_addch_functions(WINDOW * win)
+{
+	char ch;
+
+	/* Print all alphabets */
+	for (ch = 'a'; ch <= 'z'; ch++)
+		assert(waddch(win, ch) != ERR);
+	assert(waddch(win, '\n') != ERR);
+
+	wrefresh(win);
+}
+
+/* Test delwin and endwin */
+void test_delete_and_exit_functions(WINDOW * win)
+{
+	assert(delwin(win) != ERR);
+	assert(endwin() != ERR);
+}
+
+int main()
+{
+	WINDOW *win;
+
+	win = initscr();
+	if (win == NULL) {
+		fprintf(stderr, "initscr failed\n");
+		return 1;
+	}
+	test_printw_functions(win);
+	test_addch_functions(win);
+	test_input_functions(win);
+	test_vwprintw(win, "\nTesting mwvprintf\n");
+
+	return 0;
+}
+EOF
+
+gcc -o curses_test curses_test.c `pkg-config --cflags --libs ncurses` -Wall -Werror
+echo "build: OK"
+[ -x curses_test ]
+export TERM=linux
+echo a | ./curses_test
+echo "run: OK"
+
